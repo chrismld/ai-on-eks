@@ -124,6 +124,10 @@ Use the table below as your decision matrix. It reflects practical thresholds.
 |SLMs (1–8B params, quantized) - Phi-3 Mini, Llama 3.2 3B, Qwen2.5 7B	|Default choice. Strong price-perf at 100–500ms latency, moderate QPS. Graviton especially effective.	|When p95 <50ms or concurrency >100 req/s.	|llama.cpp Q4_K_M or Q8_0 on Graviton4 recommended	|
 |Medium models (8–30B params) - Llama 3.1 8B, Mistral 7B	|Batch, async, offline scoring. Test Q4 on Graviton4.	|Online inference, long contexts, tight latency.	|Benchmark Q4 on Graviton4. Results can surprise	|
 |Large LLMs (70B+ params) - Llama 3.1 70B	|Non-real-time only, heavy quantization	|Default for production online inference	|Even 70B can run on CPU; expect high latency	|
+
+<Admonition type="warning" title="70B+ Models on CPU: Proceed with Caution">
+While it is technically possible to run 70B models on CPU with heavy quantization (Q4 or lower), this is only viable for non-real-time, offline, or batch workloads. Expect token generation rates in the low single digits (1–5 tokens/sec), memory requirements exceeding 40GB even at Q4, and latency measured in minutes per response for longer outputs. For any interactive or latency-sensitive use case, 70B+ models belong on GPU or Trainium. Do not plan production online inference around CPU for models of this size.
+</Admonition>
 |Classical ML / Embeddings / CV	|High-density serving; bin-pack across nodes.	|Heavy vision or multi-modal at scale.	|TorchServe, Triton on CPU handles thousands of models.	|
 |Data pipelines / ETL / Synthetic data	|Ray and Spark on CPU for data prep and feature engineering.	|N/A	|CPUs anchor this entire data prep stage	|
 |Agent orchestration / RAG retrieval	|Network-bound services — API gateways, LiteLLM proxy, retrievers, chunkers.	|N/A	|Graviton's networking throughput shines here.	|
