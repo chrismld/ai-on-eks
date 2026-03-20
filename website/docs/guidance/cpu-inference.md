@@ -41,7 +41,7 @@ Every recommendation in this guide includes a benchmark reminder. The right inst
 
 Architecture conversations on EKS often default to GPU-first thinking. Sometimes that’s appropriate. Often, it isn’t.  The reality is that production AI pipelines are heterogeneous: CPUs anchor the control plane and much of the inference load, while GPUs and accelerators handle the compute-intensive peaks.
 
-Three things make the CPU argument compelling right now: 
+Three things make the CPU argument compelling right now:
 
 **Capacity availability.** GPU instances frequently require capacity reservations weeks in advance. CPU instances are broadly available across all AWS regions with no specialized device plugins, no DRA configuration, and no MIG partitioning. When you need to scale fast, CPU is the fastest lever to pull.
 
@@ -151,11 +151,11 @@ A dedicated performance benchmarking guide with step-by-step instructions, tooli
 
 ### Pattern 1: Agentic AI -  SLM Pre-Filter on CPU with LLM Escalation
 
-Most agent workflows execute the same narrow patterns repeatedly: classify the request, pick a tool, extract structured data, validate a response. These tasks don't require a 70B parameter model. 
+Most agent workflows execute the same narrow patterns repeatedly: classify the request, pick a tool, extract structured data, validate a response. These tasks don't require a 70B parameter model.
 
 NVIDIA's research on SLMs ([arXiv:2506.02153](https://arxiv.org/abs/2506.02153)) demonstrates that models under 10B parameters, when specialized for a domain, can match or exceed large LLMs on constrained sub-tasks, while running efficiently on CPU at significantly lower cost and latency. When a model is fine-tuned for a specific domain, its smaller footprint can actually make it *more accurate and cheaper* than invoking a general-purpose LLM.
 
-**The practical pattern:** An SLM on CPU handles the majority of requests end-to-end. A routing layer — also running on CPU — escalates only genuinely complex cases to a GPU-hosted LLM. 
+**The practical pattern:** An SLM on CPU handles the majority of requests end-to-end. A routing layer — also running on CPU — escalates only genuinely complex cases to a GPU-hosted LLM.
 
 ```mermaid
 flowchart LR
@@ -279,9 +279,9 @@ For regulated industries (financial services, healthcare, government), this patt
 
 With provisioning and scaling in place, a few optimizations make a real difference in production.
 
-### **1. Quantization: start here.** 
+### **1. Quantization: start here.**
 
-Running a 7B model at full BF16 on CPU is impractical; running it at Q4 with llama.cpp is viable and cost-effective. 
+Running a 7B model at full BF16 on CPU is impractical; running it at Q4 with llama.cpp is viable and cost-effective.
 
 **Recommended approach:** Build llama.cpp with architecture-optimized BLAS backends (ARM NEON/SVE2 for arm64, AVX-512/AMX for x86), setting n_threads equal to the vCPU count, and selecting Q4_K_M or Q8_0 quantization formats for the best balance of quality and throughput.
 
@@ -301,7 +301,7 @@ For sub-2B models (gemma-2b, qwen-0.5b, SmolLM-135M), CPU actually wins on price
 Q4_K_M quality degradation varies by model and task. Always evaluate on your evaluation set before deploying to production.
 </Admonition>
 
-### **2. Bin-packing for dense serving.** 
+### **2. Bin-packing for dense serving.**
 
 For classical ML and embedding models (typically &lt;500MB each), the goal is **maximum pod density per node at stable tail latency**. Two things determine whether you achieve that: accurate resource requests, and controlled threading. Everything else is secondary. Base your `requests` on observed p50–p90 usage under realistic load. Use Goldilocks, VPA recommendations, or Prometheus histograms from a load test, but never guess. Defaults are almost always wrong in both directions.
 
