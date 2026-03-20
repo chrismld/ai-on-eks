@@ -49,7 +49,7 @@ Three things make the CPU argument compelling right now:
 
 **Operational simplicity.** CPU pods use standard Kubernetes scheduling (`requests`, `limits`, node affinity, topology spread). No device plugins, no custom schedulers, no `nvidia.com/gpu` resource types. Teams that want to run AI workloads without deep GPU expertise can get to production faster on CPU.
 
-**Agentic workload surface.** In agentic AI pipelines, every GPU inference call is surrounded by CPU work: tool execution, context assembly, vector search, embedding lookups, guardrails, response validation, memory management, and orchestration logic. As agents get more complex — more tools, longer chains, multi-step reasoning — the CPU workload grows super-linearly. Protocols like MCP (Model Context Protocol) amplify this further: each MCP tool call triggers data retrieval, transformation, and formatting that runs entirely on CPU. The result is that CPU compute demand in agentic systems grows faster than GPU demand.
+And this trend is accelerating. In agentic AI pipelines, every GPU inference call is surrounded by CPU work: tool execution, context assembly, vector search, embedding lookups, guardrails, response validation, memory management, and orchestration logic. As agents get more complex — more tools, longer chains, multi-step reasoning — the CPU workload grows super-linearly. Protocols like MCP (Model Context Protocol) amplify this further: each MCP tool call triggers data retrieval, transformation, and formatting that runs entirely on CPU. The result is that CPU compute demand in agentic systems grows faster than GPU demand.
 
 ## CPU vs GPU / Trainium: When to Choose Each
 
@@ -143,7 +143,9 @@ While it is technically possible to run 70B models on CPU with heavy quantizatio
 
 Before committing to an instance family, run a structured benchmark comparing your candidate CPU families (arm64 and x86) and GPU on a single comparable metric: **cost-per-1,000-queries at your target p95 latency**. Deploy one node per family with identical model configuration (same quantization, context size, thread count), load-test each, and compare. If a CPU instance meets your p95 SLO, it almost certainly wins on cost. If it misses by a small margin, try the latest generation in that family before reaching for GPU. If latency is still too high at your concurrency target, that's the signal to move the workload to GPU.
 
+<Admonition type="info" title="Companion Benchmarking Guide">
 A dedicated performance benchmarking guide with step-by-step instructions, tooling recommendations, and worked examples is planned as a companion to this document.
+</Admonition>
 
 ## Production Patterns
 
@@ -151,7 +153,7 @@ A dedicated performance benchmarking guide with step-by-step instructions, tooli
 
 Most agent workflows execute the same narrow patterns repeatedly: classify the request, pick a tool, extract structured data, validate a response. These tasks don't require a 70B parameter model. 
 
-NVIDIA's research on SLMs demonstrates that models under 10B parameters, when specialized for a domain, can match or exceed large LLMs on constrained sub-tasks, while running efficiently on CPU at significantly lower cost and latency. When a model is fine-tuned for a specific domain, its smaller footprint can actually make it *more accurate and cheaper* than invoking a general-purpose LLM.
+NVIDIA's research on SLMs ([arXiv:2506.02153](https://arxiv.org/abs/2506.02153)) demonstrates that models under 10B parameters, when specialized for a domain, can match or exceed large LLMs on constrained sub-tasks, while running efficiently on CPU at significantly lower cost and latency. When a model is fine-tuned for a specific domain, its smaller footprint can actually make it *more accurate and cheaper* than invoking a general-purpose LLM.
 
 **The practical pattern:** An SLM on CPU handles the majority of requests end-to-end. A routing layer — also running on CPU — escalates only genuinely complex cases to a GPU-hosted LLM. 
 
@@ -383,7 +385,7 @@ flowchart LR
     style Recover fill:#fce4ec,stroke:#c62828,color:#000
 ```
 
-Build a small evaluation dataset (100-300 labeled examples) from your actual workload -- avoid generic benchmarks like MMLU that measure general reasoning rather than your real task. Establish a quality baseline by running the dataset against a trusted model (e.g., GPT-4o or a large Llama). Then run the same dataset on your quantized SLM and compare. Define your quality threshold before testing -- for example, "SLM accuracy within 5 percentage points of baseline." The right threshold depends on the task: a classifier reviewed by humans can tolerate more errors than a system making automatic decisions.
+Build a small evaluation dataset (100-300 labeled examples) from your actual workload — avoid generic benchmarks like MMLU that measure general reasoning rather than your real task. Establish a quality baseline by running the dataset against a trusted model (e.g., GPT-4o or a large Llama). Then run the same dataset on your quantized SLM and compare. Define your quality threshold before testing — for example, "SLM accuracy within 5 percentage points of baseline." The right threshold depends on the task: a classifier reviewed by humans can tolerate more errors than a system making automatic decisions.
 
 ### How to recover quality
 
@@ -417,3 +419,4 @@ The thresholds in this guide are informed starting points. Your model, data, and
 |AWS Spot Best Practices	|https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-best-practices.html	|
 |LoRA Land: Fine-Tuned Open-Source LLMs that Outperform GPT-4	|https://arxiv.org/abs/2405.00732	|
 |Model Context Protocol (MCP) Specification	|https://modelcontextprotocol.io	|
+|Small Language Models are the Future of Agentic AI (NVIDIA)	|https://arxiv.org/abs/2506.02153	|
