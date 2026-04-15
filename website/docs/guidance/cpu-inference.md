@@ -39,7 +39,7 @@ Every recommendation in this guide includes a benchmark reminder. The right inst
 
 ## Why CPUs for AI Workloads?
 
-Architecture conversations on EKS often default to GPU-first thinking. Sometimes that’s appropriate. Often, it isn’t.  The reality is that production AI pipelines are heterogeneous: CPUs anchor the control plane and much of the inference load, while GPUs and accelerators handle the compute-intensive peaks.
+Production AI pipelines distribute work across many compute tiers, and CPUs can handle: routing, classification, retrieval, orchestration, and a growing share of inference. Current-generation CPU instances deliver strong price-performance and familiar Kubernetes scheduling, making them a first-class option for a wide range of AI workloads on Kubernetes.
 
 Three things make the CPU argument compelling right now:
 
